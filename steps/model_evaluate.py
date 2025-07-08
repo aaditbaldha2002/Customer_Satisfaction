@@ -3,7 +3,7 @@ import pandas as pd
 from zenml import step
 
 @step
-def model_evaluate(df:pd.DataFrame)->float:
+def model_evaluate(df:pd.DataFrame)->None:
     """
     Evaluates the model trained on the ingested data
 
