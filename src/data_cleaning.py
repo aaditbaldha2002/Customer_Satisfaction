@@ -69,7 +69,7 @@ class DataCleaning:
     """
     Class for cleaning data which processes the data and divides it into train and test set
     """
-    def __init__(self,data:pd.DataFrame,strategy:DataStrategy)
+    def __init__(self,data:pd.DataFrame,strategy:DataStrategy):
         self.data=data
         self.strategy=strategy
     

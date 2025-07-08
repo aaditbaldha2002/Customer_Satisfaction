@@ -7,6 +7,6 @@ from steps.model_evaluate import model_evaluate
 @pipeline(enable_cache=False)
 def training_pipeline(data_path:str):
     df=ingest_data(data_path)
-    clean_data(df)
-    model_train(df)
-    model_evaluate(df)
+    X_train,X_test,y_train,y_test=clean_data(df)
+    model=model_train(X_train,X_test,y_train,y_test)
+    r2_score,rmse=model_evaluate(model,X_test,y_test)
