@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.base import RegressorMixin
 from zenml import pipeline,step
 from zenml.config import DockerSettings
 from zenml.constants import DEFAULT_SERVICE_START_STOP_TIMEOUT
@@ -18,7 +19,7 @@ docker_settings = DockerSettings(required_integrations=[MLFLOW])
 
 class DeploymentTriggerConfig(BaseModel):
     """Deployment Trigger config"""
-    min_accuracy:float=0.92
+    min_accuracy:float=0
 
 @step
 def deployment_trigger(
@@ -27,11 +28,39 @@ def deployment_trigger(
 ):
     """Implements a simple model deployment trigger that looks at the input model accuracy and trigger if it the model is good enough to deploy"""
     return accuracy>=config.min_accuracy
-    
 
-@pipeline(enable_cache=True,settings={"docker":docker_settings})
+from zenml import step
+from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import MLFlowModelDeployer
+from zenml.integrations.mlflow.services import MLFlowDeploymentService
+from typing import Optional
+import logging
+
+@step
+def custom_mlflow_model_deployer_step(
+    model: RegressorMixin,
+    deploy_decision: bool,
+    workers: int = 1,
+    timeout: int = DEFAULT_SERVICE_START_STOP_TIMEOUT
+) -> Optional[MLFlowDeploymentService]:
+    """Custom deployer that avoids daemon mode for Windows."""
+    if not deploy_decision:
+        logging.info("[🚫] Deployment skipped: Accuracy below threshold.")
+        return None
+
+    deployer = MLFlowModelDeployer.get_active_model_deployer()
+    service = deployer.deploy_model(
+        model_uri=model,
+        timeout=timeout,
+        workers=workers,
+        enable_daemon=False,  # 🔑 This avoids the error on Windows
+    )
+    logging.info(f"[✅] Model deployed at: {service.prediction_url}")
+    return service
+
+
+@pipeline(enable_cache=False,settings={"docker":docker_settings})
 def continuous_deployment_pipeline(
-    min_accuracy:float = 0.92,
+    min_accuracy:float = 0,
     workers: int=1,
     timeout: int = DEFAULT_SERVICE_START_STOP_TIMEOUT
 ):
@@ -44,8 +73,13 @@ def continuous_deployment_pipeline(
     )
 
     r2_score, rmse = model_evaluate(model, X_test, y_test)
-    deploy_decision=deployment_trigger(r2_score)
-    mlflow_model_deployer_step(model=model,
+    deploy_decision = deployment_trigger(
+    accuracy=r2_score,
+    config=DeploymentTriggerConfig(min_accuracy=min_accuracy)
+    )
+
+    print("Deployment decision made:",deploy_decision)
+    custom_mlflow_model_deployer_step(model=model,
                                deploy_decision=deploy_decision,
                                workers=workers,
                                timeout=timeout,

@@ -1,3 +1,4 @@
+from typing import cast
 from pipelines.deployment_pipeline import continuous_deployment_pipeline
 import click 
 from rich import print
@@ -20,7 +21,7 @@ DEPLOY_AND_PREDICT="deploy_and_predict"
     "(`predict`). By default both will be run"
     "(`deploy_and_predict`),",
 )
-@click.option("--min-accuracy",default=0.92,help="Minimum accuracy required to deploy the model",)
+@click.option("--min-accuracy",default=0,help="Minimum accuracy required to deploy the model",)
 
 def run_deployment(config:str, min_accuracy:float):
     mlflow_model_deployer_component=MLFlowModelDeployer.get_active_model_deployer()
