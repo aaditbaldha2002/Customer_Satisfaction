@@ -9,8 +9,8 @@ from typing_extensions import Annotated
 def clean_data(df:pd.DataFrame)->Tuple[
     Annotated[pd.DataFrame,"X_train"],
     Annotated[pd.DataFrame,"X_test"],
-    Annotated[pd.DataFrame,"y_train"],
-    Annotated[pd.DataFrame,"y_test"],
+    Annotated[pd.Series,"y_train"],
+    Annotated[pd.Series,"y_test"],
 
 ]:
     """
@@ -32,6 +32,7 @@ def clean_data(df:pd.DataFrame)->Tuple[
         data_divide_strategy=DataDivideStrategy()
         data_cleaning=DataCleaning(processed_data,data_divide_strategy)
         X_train,X_test,y_train,y_test=data_cleaning.handle_data()
+        return X_train,X_test,y_train,y_test
         logging.info("Data cleaning completed")
     except Exception as e:
         logging.error(f"Error in cleaning data:{e}")

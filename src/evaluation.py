@@ -1,7 +1,7 @@
 import logging
 from abc import ABC,abstractmethod
 import numpy as np
-from sklearn.base import r2_score
+from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error, root_mean_squared_error
 
 class Evaluation(ABC):

@@ -27,7 +27,7 @@ class DataPreProcessStrategy(DataStrategy):
         try:
             data=data.drop(columns=[
                 'order_approved_at',
-                'order_delivered_carrier_data',
+                'order_delivered_carrier_date',
                 'order_delivered_customer_date',
                 'order_estimated_delivery_date',
                 'order_purchase_timestamp'
@@ -36,7 +36,7 @@ class DataPreProcessStrategy(DataStrategy):
             data["product_length_cm"].fillna(data["product_length_cm"].median(),inplace=True)
             data["product_height_cm"].fillna(data["product_height_cm"].median(),inplace=True)
             data["product_width_cm"].fillna(data["product_width_cm"].median(),inplace=True)
-            data["review_comment_message"].fillna(data["review_comment_message"].median(),inplace=True)
+            data["review_comment_message"].fillna("No Review",inplace=True)
 
             data=data.select_dtypes(include=[np.number])
 
