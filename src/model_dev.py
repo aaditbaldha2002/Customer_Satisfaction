@@ -1,6 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 import pandas as pd
+from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.linear_model import LinearRegression
 
 class Model(ABC):

@@ -19,7 +19,7 @@ def model_train(
     y_train: pd.Series,
     y_test: pd.Series,
     config: ModelNameConfig
-) -> str:
+) -> RegressorMixin:
     """
     Trains a regression model and logs it to MLflow.
 
@@ -37,7 +37,7 @@ def model_train(
             model_uri = f"runs:/{run_id}/model"
 
             logging.info(f"✅ Model logged to MLflow with URI: {model_uri}")
-            return model_uri
+            return trained_model
         else:
             raise ValueError(f"Model '{config.model_name}' is not supported.")
     except Exception as e:

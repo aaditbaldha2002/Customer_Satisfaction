@@ -9,12 +9,11 @@ from zenml.client import Client
 import mlflow
 import mlflow.sklearn
 
-# Use active experiment tracker (optional if using MLflow for logging)
 experiment_tracker = Client().active_stack.experiment_tracker
 
 @step(experiment_tracker=experiment_tracker.name)
 def model_evaluate(
-    model_uri: str,
+    model: RegressorMixin,
     X_test: pd.DataFrame,
     y_test: pd.Series
 ) -> Tuple[Annotated[float, "r2_score"], Annotated[float, "rmse"]]:
@@ -32,7 +31,6 @@ def model_evaluate(
     """
     try:
         # ✅ Load model from MLflow
-        model = mlflow.sklearn.load_model(model_uri)
         predictions = model.predict(X_test)
 
         # ✅ Calculate metrics

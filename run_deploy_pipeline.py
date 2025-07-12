@@ -5,6 +5,8 @@ from rich import print
 from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (MLFlowModelDeployer)
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
+
+
 DEPLOY="deploy"
 PREDICT="predict"
 DEPLOY_AND_PREDICT="deploy_and_predict"
@@ -29,7 +31,7 @@ def run_deployment(config:str, min_accuracy:float):
     predict=config==PREDICT or config==DEPLOY_AND_PREDICT
 
     if deploy:
-        continuous_deployment_pipeline(min_accuracy=min_accuracy,workers=3,timeout=60)
+        continuous_deployment_pipeline(data_path="dataset/olist_customers_dataset.csv",min_accuracy=min_accuracy,workers=3,timeout=60)
     if predict:
         inference_pipeline()
 

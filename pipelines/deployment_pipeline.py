@@ -11,8 +11,10 @@ from zenml.logger import get_logger
 from zenml.config import DockerSettings
 from zenml.constants import DEFAULT_SERVICE_START_STOP_TIMEOUT
 from zenml.integrations.constants import MLFLOW
-from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import MLFlowModelDeployer
+from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (MLFlowModelDeployer)
+from zenml.integrations.mlflow.steps import mlflow_model_deployer_step
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
+
 from steps.clean_data import clean_data
 from steps.config import ModelNameConfig
 from steps.model_evaluate import model_evaluate
@@ -87,23 +89,24 @@ def custom_mlflow_model_deployer_step(
 # ✅ Continuous deployment pipeline
 @pipeline(enable_cache=False, settings={"docker": docker_settings})
 def continuous_deployment_pipeline(
+    data_path:str,
     min_accuracy: float = 0.0,
     workers: int = 1,
     timeout: int = DEFAULT_SERVICE_START_STOP_TIMEOUT
 ):
     """Pipeline for ingesting, training, evaluating, and deploying a model."""
     # Step 1: Ingest & clean data
-    df = ingest_data("dataset/olist_customers_dataset.csv")
+    df = ingest_data(data_path)
     X_train, X_test, y_train, y_test = clean_data(df)
 
     # Step 2: Train model and log to MLflow
-    model_uri = model_train(
+    model = model_train(
         X_train, X_test, y_train, y_test,
         config=ModelNameConfig(model_name="LinearRegression")
     )
 
     # Step 3: Evaluate the model
-    r2_score, rmse = model_evaluate(model_uri, X_test, y_test)
+    r2_score, rmse = model_evaluate(model, X_test, y_test)
 
     # Step 4: Decide whether to deploy
     deploy_decision = deployment_trigger(
@@ -111,9 +114,8 @@ def continuous_deployment_pipeline(
         config=DeploymentTriggerConfig(min_accuracy=min_accuracy)
     )
 
-    # Step 5: Deploy model if decision is True
-    custom_mlflow_model_deployer_step(
-        model_uri=model_uri,
+    mlflow_model_deployer_step(
+        model=model,
         deploy_decision=deploy_decision,
         workers=workers,
         timeout=timeout
